@@ -1,68 +1,81 @@
-
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+// Use namespace import and destructuring to resolve potential environment/type export issues
+import * as ReactRouterDOM from 'react-router-dom';
 import { useStore } from '../store';
 import { Menu, X, Waves, Settings, Home, Calendar, LayoutDashboard, FileText, BarChart3, Briefcase } from 'lucide-react';
 
+const { Link, useLocation } = ReactRouterDOM as any;
+
 export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
 
-  // Added icon: undefined to guestLinks to ensure consistent structure with adminLinks
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const guestLinks = [
-    { name: 'Home', href: '/', icon: undefined },
-    { name: 'Rooms', href: '/rooms', icon: undefined },
-    { name: 'Experiences', href: '/experiences', icon: undefined },
-    { name: 'Contact', href: '/contact', icon: undefined },
+    { name: 'HOME', href: '/' },
+    { name: 'ROOMS', href: '/rooms' },
+    { name: 'EXPERIENCES', href: '/experiences' },
+    { name: 'CONTACT', href: '/contact' },
   ];
 
   const adminLinks = [
-    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-    { name: 'Manage Rooms', href: '/admin/rooms', icon: Briefcase },
-    { name: 'Room Rates', href: '/admin/rates', icon: BarChart3 },
-    { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
-    { name: 'Content CMS', href: '/admin/cms', icon: FileText },
+    { name: 'DASHBOARD', href: '/admin', icon: LayoutDashboard },
+    { name: 'MANAGE ROOMS', href: '/admin/rooms', icon: Briefcase },
+    { name: 'ROOM RATES', href: '/admin/rates', icon: BarChart3 },
+    { name: 'BOOKINGS', href: '/admin/bookings', icon: Calendar },
+    { name: 'CONTENT CMS', href: '/admin/cms', icon: FileText },
   ];
 
   const links = isAdmin ? adminLinks : guestLinks;
+  const isHomePage = location.pathname === '/';
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      scrolled ? 'bg-obsidian py-3 shadow-2xl' : 'bg-transparent py-6'
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          <Link to="/" className="flex items-center gap-2">
-            <Waves className="w-8 h-8 text-teal-600" />
-            <span className="text-2xl font-bold tracking-tight text-slate-800">RUKA <span className="text-teal-600">MALDIVES</span></span>
+        <div className="flex justify-between items-center">
+          <Link to="/" className="flex items-center gap-3">
+            <div className={`p-2 rounded-full border border-gold/30 transition-all duration-500 ${scrolled ? 'scale-90' : ''}`}>
+              <Waves className="w-6 h-6 text-gold" />
+            </div>
+            <span className="text-xl font-serif font-bold tracking-[0.2em] text-white">
+              RUKA <span className="text-gold">MALDIVES</span>
+            </span>
           </Link>
 
           {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-10">
             {links.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
-                className={`text-sm font-semibold transition-colors flex items-center gap-2 ${
-                  location.pathname === link.href ? 'text-teal-600' : 'text-slate-600 hover:text-teal-600'
+                className={`text-[10px] font-bold tracking-[0.3em] transition-all hover:text-gold ${
+                  location.pathname === link.href ? 'text-gold' : 'text-white/80'
                 }`}
               >
-                {link.icon && <link.icon className="w-4 h-4" />}
                 {link.name}
               </Link>
             ))}
             <Link
               to={isAdmin ? "/" : "/admin"}
-              className="ml-4 p-2 rounded-full bg-slate-100 text-slate-600 hover:bg-teal-50 hover:text-teal-600 transition-all"
-              title={isAdmin ? "Go to Website" : "Admin Dashboard"}
+              className="bg-gold hover:bg-gold-hover text-white text-[10px] font-bold tracking-[0.2em] px-6 py-3 transition-all"
             >
-              {isAdmin ? <Home className="w-5 h-5" /> : <Settings className="w-5 h-5" />}
+              {isAdmin ? "GO TO WEBSITE" : "STAFF PORTAL"}
             </Link>
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center gap-4">
-            <button onClick={() => setIsOpen(!isOpen)} className="text-slate-600 p-2">
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          <div className="md:hidden">
+            <button onClick={() => setIsOpen(!isOpen)} className="text-gold p-2">
+              {isOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
             </button>
           </div>
         </div>
@@ -70,26 +83,24 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-white border-b border-slate-200 animate-in slide-in-from-top duration-200 shadow-xl">
-          <div className="px-4 pt-2 pb-6 space-y-1">
+        <div className="md:hidden bg-obsidian border-b border-gold/20 animate-in slide-in-from-top duration-300">
+          <div className="px-6 pt-4 pb-10 space-y-4">
             {links.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-3 py-3 text-base font-semibold text-slate-700 hover:bg-teal-50 hover:text-teal-600 rounded-lg transition-colors"
+                className="block text-[11px] font-bold tracking-[0.3em] text-white/80 hover:text-gold transition-colors py-2"
               >
-                {link.icon && <link.icon className="w-5 h-5" />}
                 {link.name}
               </Link>
             ))}
             <Link
               to={isAdmin ? "/" : "/admin"}
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-3 py-3 text-base font-bold text-teal-600 bg-teal-50 rounded-lg mt-4"
+              className="block bg-gold text-white text-center text-[11px] font-bold tracking-[0.3em] py-4 mt-6"
             >
-              {isAdmin ? <Home className="w-5 h-5" /> : <Settings className="w-5 h-5" />}
-              {isAdmin ? "Exit Admin" : "Staff Access"}
+              {isAdmin ? "EXIT ADMIN" : "STAFF ACCESS"}
             </Link>
           </div>
         </div>
